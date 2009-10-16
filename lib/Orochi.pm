@@ -7,7 +7,7 @@ use Orochi::Injection::Literal;
 use Path::Router;
 use constant DEBUG => ($ENV{OROCHI_DEBUG});
 
-our $VERSION = '0.00001';
+our $VERSION = '0.00002';
 
 has prefix => (
     is => 'ro',
@@ -30,10 +30,18 @@ sub get {
 
     $path = $self->mangle_path( $path );
     my $matched = $self->router->match( $path );
+    my $value;
     if ( $matched ) {
-        return $matched->target->expand( $self );;
-    }
-    return ();
+        if ( blessed $matched->target && Moose::Util::does_role( $matched->target, 'Orochi::Injection') ) {
+            $value = $matched->target->expand( $self );
+            # $matched->route->target( $value );
+            # XXX - BAD BOY!
+            $matched->route->{target} = $value;
+        } else {
+            $value = $matched->target;
+        }
+    } 
+    return $value;
 }
 
 sub mangle_path {
