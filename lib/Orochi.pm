@@ -7,7 +7,7 @@ use Orochi::Injection::Literal;
 use Path::Router;
 use constant DEBUG => ($ENV{OROCHI_DEBUG});
 
-our $VERSION = '0.00002';
+our $VERSION = '0.00003';
 
 has prefix => (
     is => 'ro',
@@ -25,22 +25,37 @@ sub _build_router {
     return Path::Router->new();
 }
 
+our $Indent = -1;
+sub _debug { # don't use this, ok?
+    my $fmt = shift;
+    my $indent = '   ' x ($Indent >= 0 ? $Indent : 0);
+    printf STDERR ("[Orochi]: $indent$fmt\n", @_);
+}
+
 sub get {
     my ($self, $path) = @_;
 
+    if (DEBUG()) {
+        Orochi::_debug("Orochi: fetching '%s'", $path);
+    }
     $path = $self->mangle_path( $path );
     my $matched = $self->router->match( $path );
     my $value;
+    local $Indent = $Indent + 1;
     if ( $matched ) {
         if ( blessed $matched->target && Moose::Util::does_role( $matched->target, 'Orochi::Injection') ) {
             $value = $matched->target->expand( $self );
             # $matched->route->target( $value );
             # XXX - BAD BOY!
-            $matched->route->{target} = $value;
+#            $matched->route->{target} = $value;
         } else {
             $value = $matched->target;
         }
-    } 
+    }
+
+    if (DEBUG()) {
+        Orochi::_debug("Orochi: '%s' resolves to '%s' (MATCH: %s)", $path, $value || '(null)', $matched ? "YES" : "NO");
+    }
     return $value;
 }
 
@@ -65,7 +80,7 @@ sub inject {
     $path = $self->mangle_path($path);
 
     if (DEBUG()) {
-        print STDERR "Injecting $path\n";
+        Orochi::_debug("Orochi: Injecting %s", $path);
     }
     $self->router->insert_route($path => (target => $injection));
 }
@@ -162,7 +177,6 @@ sub inject_class {
 
 sub inject_namespace {
     my ($self, $namespace) = @_;
-
     my $mpo = Module::Pluggable::Object->new(
         search_path => $namespace,
     );
@@ -241,10 +255,13 @@ Orochi constructor, for example
 
 Injects a Orochi::Injection object.
 
-=head2 bind_value($path)
+=head2 bind_value($path) or bind_value(\@paths)
 
 Creates a BindValue injection, which is a lazy evaluation based on a 
 Orochi key.
+
+If given a list, will cascade through the given paths until one returns a
+defined value
 
 =head2 inject_constructor($path => %injection_args)
 

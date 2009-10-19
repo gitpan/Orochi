@@ -23,6 +23,7 @@ META.yml
 t/001_constructor.t
 t/002_declare.t
 t/300_moosex.t
+t/900_cascade_bind.t
 t/lib/Orochi/Test/MooseBased1.pm
 t/lib/Orochi/Test/MooseBased2.pm
 t/lib/Orochi/Test/Object1.pm
