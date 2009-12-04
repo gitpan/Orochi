@@ -1,6 +1,7 @@
 package Orochi;
 use Moose;
 use Data::Visitor::Callback;
+use Module::Pluggable::Object;
 use Orochi::Injection::BindValue;
 use Orochi::Injection::Constructor;
 use Orochi::Injection::Literal;
@@ -10,7 +11,7 @@ use namespace::clean -except => qw(meta);
 
 use constant DEBUG => ($ENV{OROCHI_DEBUG} || 0);
 
-our $VERSION = '0.00005';
+our $VERSION = '0.00006';
 
 has prefix => (
     is => 'ro',
@@ -182,11 +183,13 @@ sub inject_class {
     my $meta;
 
     # Find the first Orochi meta class in the inheritance tree
-    foreach my $a_class ( $class->meta->linearized_isa ) {
-        my $foo;
-        $foo = Moose::Util::find_meta($a_class);
-        if (Moose::Util::does_role($foo, 'MooseX::Orochi::Meta::Class')) {
-            $meta = $foo;
+    if ($class->can('meta') && $class->meta->can('linearized_isa')) {
+        foreach my $a_class ( $class->meta->linearized_isa ) {
+            my $foo;
+            $foo = Moose::Util::find_meta($a_class);
+            if (Moose::Util::does_role($foo, 'MooseX::Orochi::Meta::Class')) {
+                $meta = $foo;
+            }
         }
     }
 
