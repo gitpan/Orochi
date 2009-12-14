@@ -11,7 +11,7 @@ use namespace::clean -except => qw(meta);
 
 use constant DEBUG => ($ENV{OROCHI_DEBUG} || 0);
 
-our $VERSION = '0.00006';
+our $VERSION = '0.00007';
 
 has prefix => (
     is => 'ro',
@@ -84,7 +84,12 @@ sub get {
     } else {
         $matched = $self->router->match( $path );
         if ( $matched ) {
-            $value = $matched->target->expand( $self );
+            eval {
+                $value = $matched->target->expand( $self );
+            };
+            if ($@) {
+                die "An error occurred while attempting to expand for $path: $@";
+            }
             $self->_expanded_values->{$path} = $value;
         }
     }
@@ -120,7 +125,7 @@ sub inject {
     $path = $self->mangle_path($path);
 
     if (DEBUG()) {
-        Orochi::_debug("Orochi: Injecting %s", $path);
+        Orochi::_debug("Injecting %s", $path);
     }
     $self->router->insert_route($path => (target => $injection));
 }
@@ -176,6 +181,10 @@ sub inject_literal {
 sub inject_class {
     my ($self, $class) = @_;
 
+    if (DEBUG()) {
+        Orochi::_debug("inject_class( $class )");
+    }
+
     if (! Class::MOP::is_class_loaded($class)) {
         Class::MOP::load_class($class);
     }
@@ -189,6 +198,7 @@ sub inject_class {
             $foo = Moose::Util::find_meta($a_class);
             if (Moose::Util::does_role($foo, 'MooseX::Orochi::Meta::Class')) {
                 $meta = $foo;
+                last;
             }
         }
     }
@@ -207,6 +217,8 @@ sub inject_class {
         return;
     } 
 
+    # if we're using that of our parent class, then we should clone the
+    # injection object. if not, just create our own
     my $new_injection = $meta->bind_injection->meta->clone_object( $meta->bind_injection );
     $new_injection->class( $class );
     $self->inject( $meta->bind_path, $new_injection );
