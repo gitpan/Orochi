@@ -1,6 +1,10 @@
 Changes
 =======
 
+0.00008 - Feb 25 2010
+    - Something in Moose internals is causing a functional mismatch when
+      checking out if a meta class does a meta role. Work around it
+
 0.00007 - Dec 14 2009
     - Properly terminate searching for parent classes when a MooseX::Orochi
       meta class is found.

@@ -11,7 +11,7 @@ use namespace::clean -except => qw(meta);
 
 use constant DEBUG => ($ENV{OROCHI_DEBUG} || 0);
 
-our $VERSION = '0.00007';
+our $VERSION = '0.00008';
 
 has prefix => (
     is => 'ro',
@@ -116,6 +116,31 @@ sub mangle_path {
     }
     return $path;
 }
+
+sub inject_from_config {
+    my ($self, $config) = @_;
+
+    if (my $injections = $config->{injections}) {
+        while ( my($name, $value) = each %$injections ) {
+            if (! blessed $value ) {
+                $value = Orochi::Injection::Literal->new( value => $value );
+            }
+            $self->inject($name, $value);
+        }
+    }
+
+    if (my $classes = $config->{classes})  {
+        foreach my $class ( @$classes ) {
+            $self->inject_class( $class );
+        }
+    }
+
+    if (my $namespaces = $self->{namespaces}) {
+        foreach my $namespace (@$namespaces) {
+            $self->inject_namespace( $namespace );
+        }
+    }
+}
         
 sub inject {
     my ($self, $path, $injection) = @_;
@@ -197,8 +222,10 @@ sub inject_class {
             my $foo;
             $foo = Moose::Util::find_meta($a_class);
             if (Moose::Util::does_role($foo, 'MooseX::Orochi::Meta::Class')) {
-                $meta = $foo;
-                last;
+                if ($foo->bind_path) {
+                    $meta = $foo;
+                    last;
+                }
             }
         }
     }
@@ -236,7 +263,6 @@ sub inject_namespace {
     );
     $self->inject_class($_) for $mpo->plugins;
 }
-
 
 __PACKAGE__->meta->make_immutable;
 
