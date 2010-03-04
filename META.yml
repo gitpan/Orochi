@@ -4,7 +4,10 @@ author:
   - 'Daisuke Maki C<< <daisuke@endeworks.jp> >>'
 build_requires:
   ExtUtils::MakeMaker: 6.42
+  Test::MockObject: 0
   Test::More: 0.88
+  UNIVERSAL::can: 0
+  UNIVERSAL::isa: 0
 configure_requires:
   ExtUtils::MakeMaker: 6.42
 distribution_type: module
@@ -28,4 +31,4 @@ requires:
 resources:
   license: http://dev.perl.org/licenses/
   repository: git://github.com/lestrrat/Orochi.git
-version: 0.00008
+version: 0.00009

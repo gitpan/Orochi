@@ -12,6 +12,9 @@ requires 'Module::Pluggable';
 requires 'Path::Router';
 requires 'Sub::Exporter';
 test_requires 'Test::More' => 0.88;
+test_requires 'Test::MockObject';
+test_requires 'UNIVERSAL::can'; # MockObject apparently didn't declare it
+test_requires 'UNIVERSAL::isa'; # MockObject apparently didn't declare it
 
 auto_set_repository;
 

@@ -1,6 +1,10 @@
 Changes
 =======
 
+0.00009 - Mar 05 2010
+    - Add Test::MockObject as a dependency. Addresses rt #55237
+    - No code change
+
 0.00008 - Feb 25 2010
     - Something in Moose internals is causing a functional mismatch when
       checking out if a meta class does a meta role. Work around it
