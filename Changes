@@ -1,6 +1,9 @@
 Changes
 =======
 
+0.00010 - Jul 28 2011
+    - Work with new Moose (gardejo)
+
 0.00009 - Mar 05 2010
     - Add Test::MockObject as a dependency. Addresses rt #55237
     - No code change
